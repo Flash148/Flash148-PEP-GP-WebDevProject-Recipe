@@ -1,7 +1,7 @@
-commit 41a48799451d17c1a85ab35ba0f50e264e9a9c45
+commit a6205d0649029425b7d62e1d8e22b53c15b63eda
 Author: Flash148 <Flash148@github.com>
-Date:   Thu Aug 13 21:45:53 2026 +0000
+Date:   Thu Aug 13 22:01:13 2026 +0000
 
-    Add registration form fields and submit button
+    Implement ingredient CRUD operations. Adds getIngredients/addIngredient/deleteIngredient, authenticated via the stored Bearer token. Delete resolves ingredients ID from the locally cached ingredients array before sending the DELETE request.
 
- 40 files changed, 15 insertions(+), 1 deletion(-)
+ 1 file changed, 83 insertions(+)
