@@ -12,20 +12,31 @@ const BASE_URL = "http://localhost:8081"; // backend URL
  * - searchInput (optional for future use)
  * - adminLink (if visible conditionally)
  */
+const addIngredientNameInput = document.getElementById("add-ingredient-name-input");
+const deleteIngredientNameInput = document.getElementById("delete-ingredient-name-input");
+const ingredientListContainer = document.getElementById("ingredient-list");
 
 /* 
  * TODO: Attach 'onclick' events to:
  * - "add-ingredient-submit-button" → addIngredient()
  * - "delete-ingredient-submit-button" → deleteIngredient()
  */
+document.getElementById("add-ingredient-submit-button").addEventListener("click", addIngredient);
+document.getElementById("delete-ingredient-submit-button").addEventListener("click", deleteIngredient);
+
+
 
 /*
  * TODO: Create an array to keep track of ingredients
  */
+let ingredients = [];
 
 /* 
  * TODO: On page load, call getIngredients()
  */
+onload = function() {
+    getIngredients();
+}
 
 
 /**
@@ -41,6 +52,28 @@ const BASE_URL = "http://localhost:8081"; // backend URL
  */
 async function addIngredient() {
     // Implement add ingredient logic here
+    const ingredientName = addIngredientNameInput.value.trim();
+    if (!ingredientName) {
+        alert("Please enter an ingredient name.");
+        return;
+    }
+    try {
+        const response = await fetch(`${BASE_URL}/ingredients`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${sessionStorage.getItem("auth-token")}`
+            },
+            body: JSON.stringify({ name: ingredientName })
+        });
+        if (!response.ok) {
+            throw new Error(`Error adding ingredient: ${response.status}`);
+        }
+        addIngredientNameInput.value = "";
+        await getIngredients();
+    } catch (error) {
+        alert("Error: " + error.message);
+    }
 }
 
 
@@ -55,6 +88,21 @@ async function addIngredient() {
  */
 async function getIngredients() {
     // Implement get ingredients logic here
+    try {
+        const response = await fetch(`${BASE_URL}/ingredients`, {
+            headers: {
+                "Authorization": `Bearer ${sessionStorage.getItem("auth-token")}`
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`Error fetching ingredients: ${response.status}`);
+        }
+        const data = await response.json();
+        ingredients = data;
+        refreshIngredientList();
+    } catch (error) {
+        alert("Error: " + error.message);
+    }
 }
 
 
@@ -71,6 +119,33 @@ async function getIngredients() {
  */
 async function deleteIngredient() {
     // Implement delete ingredient logic here
+    const ingredientName = deleteIngredientNameInput.value.trim();
+    if (!ingredientName) {
+        alert("Please enter an ingredient name to delete.");
+        return;
+    }
+    const match = ingredients.find(ingredient => ingredient.name === ingredientName);
+    if (!match) {
+        alert("Ingredient not found.");
+        return;
+    }
+    const ingredientId = match.id;
+    try {
+        const response = await fetch(`${BASE_URL}/ingredients/${ingredientId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${sessionStorage.getItem("auth-token")}`
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`Error deleting ingredient: ${response.status}`);
+        }
+        // On success: call getIngredients() and refreshIngredientList(), clear input
+        await getIngredients();
+        deleteIngredientNameInput.value = "";
+    } catch (error) {
+        alert("Error: " + error.message);
+    }
 }
 
 
@@ -86,4 +161,12 @@ async function deleteIngredient() {
  */
 function refreshIngredientList() {
     // Implement ingredient list rendering logic here
+    ingredientListContainer.innerHTML = "";
+    ingredients.forEach(ingredient => {
+        const li = document.createElement("li");
+        const p = document.createElement("p");
+        p.textContent = ingredient.name;
+        li.appendChild(p);
+        ingredientListContainer.appendChild(li);
+    });
 }
